@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do Juvenal</title>
+<style>
+:root{--bg:#eef3f6;--card:#fff;--ink:#18222c;--mute:#5d6b76;--line:#d7e0e6;--accent:#b5581f;
+--ok:#1f7a4d;--okb:#e0f2e9;--wait:#245f8a;--waitb:#e1eef6;--warn:#92600a;--warnb:#fbf0d9;--bad:#b3261e;--badb:#fbe5e3}
+@media (prefers-color-scheme:dark){:root{--bg:#10171d;--card:#18222b;--ink:#e8eef2;--mute:#9aa8b3;--line:#2b3843;--accent:#e8935c;
+--ok:#63d29c;--okb:#17372a;--wait:#8cc3ea;--waitb:#1a3244;--warn:#ecc069;--warnb:#3c2f13;--bad:#f2968f;--badb:#43201e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:auto;padding:24px 16px 56px}
+header{display:flex;gap:14px;align-items:center;margin-bottom:20px}
+header img{width:58px;height:58px;border-radius:50%;object-fit:cover}
+h1{font-size:24px;margin:0}header p{margin:2px 0 0;color:var(--mute);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.stat,.next,.day{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.stat{padding:14px}.stat b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{color:var(--mute);font-size:13px}
+.health{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--mute);font-size:14px;margin:0 2px 18px}
+.health .bad{color:var(--bad);font-weight:600}
+.alert{background:var(--badb);color:var(--bad);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:15px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.tabs button{font:inherit;font-size:14px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.day{padding:12px 14px;margin-bottom:12px}.day h2{font-size:15px;margin:0 0 10px}.day h2::first-letter{text-transform:uppercase}
+.posts{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.post{min-width:0}.post a{display:block;line-height:0}
+.post img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.meta{display:flex;justify-content:space-between;gap:6px;align-items:center;margin-top:6px;font-size:13px}
+.hora{font-weight:600;font-variant-numeric:tabular-nums}
+.tag{padding:1px 7px;border-radius:999px;font-size:12px;white-space:nowrap}
+.agendado{color:var(--wait);background:var(--waitb)}.publicado{color:var(--ok);background:var(--okb)}
+.publicando{color:var(--wait);background:var(--waitb)}.verificar{color:var(--warn);background:var(--warnb)}.erro{color:var(--bad);background:var(--badb)}
+.err{color:var(--bad);font-size:12px;margin-top:3px;overflow-wrap:anywhere}
+.vazio{padding:32px 16px;text-align:center;color:var(--mute)}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.posts{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><img src="slides/avatar.jpg" alt=""><div><h1>Painel do Juvenal</h1><p id="sub">Carregando…</p></div></header>
+<div id="alerta"></div>
+<section class="stats" id="stats"></section>
+<div class="health" id="saude"></div>
+<nav class="tabs" id="tabs"></nav>
+<main id="dias"></main>
+</div>
+<script>
+const NOME={agendado:'Agendado',publicando:'Publicando',publicado:'Publicado',verificar:'Verificar',erro:'Erro'};
+const FUSO='America/Sao_Paulo';
+const fmtDia=d=>new Intl.DateTimeFormat('pt-BR',{timeZone:FUSO,weekday:'long',day:'2-digit',month:'long'}).format(d);
+const fmtHora=d=>new Intl.DateTimeFormat('pt-BR',{timeZone:FUSO,hour:'2-digit',minute:'2-digit'}).format(d);
+const fmtData=d=>new Intl.DateTimeFormat('pt-BR',{timeZone:FUSO,day:'2-digit',month:'2-digit',year:'numeric'}).format(d);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let fila=[],filtro='proximos';
+function render(){
+  const lista=fila.filter(p=>filtro==='todos'||(filtro==='proximos'?['agendado','publicando'].includes(p.status):
+    filtro==='problemas'?['erro','verificar'].includes(p.status):p.status===filtro));
+  const dias=new Map();
+  lista.forEach(p=>{const d=new Date(p.quando),k=fmtDia(d);(dias.get(k)||dias.set(k,[]).get(k)).push(p)});
+  const alvo=document.getElementById('dias');
+  if(!lista.length){alvo.innerHTML='<div class="day vazio">Nada por aqui.</div>';return}
+  alvo.innerHTML=[...dias].map(([dia,ps])=>`<section class="day"><h2>${dia}</h2><div class="posts">${ps.map(p=>`
+    <article class="post"><a href="slides/${esc(p.slide)}" target="_blank" rel="noopener"><img loading="lazy" src="slides/${esc(p.slide)}" alt="${esc(p.frase)}"></a>
+    <div class="meta"><span class="hora">${fmtHora(new Date(p.quando))}</span><span class="tag ${esc(p.status)}">${NOME[p.status]||esc(p.status)}</span></div>
+    ${p.erro?`<div class="err">${esc(p.erro)}</div>`:''}</article>`).join('')}</div></section>`).join('');
+}
+function abas(c){
+  const itens=[['proximos','Próximos'],['publicado','Publicados'],['problemas',`Problemas${c.problemas?` (${c.problemas})`:''}`],['todos','Todos']];
+  const nav=document.getElementById('tabs');
+  nav.innerHTML=itens.map(([k,t])=>`<button data-k="${k}" aria-pressed="${k===filtro}">${t}</button>`).join('');
+  nav.onclick=e=>{const k=e.target.dataset.k;if(k){filtro=k;abas(c);render()}};
+}
+async function carregar(){
+  const sem=r=>r.ok?r.json():null;
+  const [f,s]=await Promise.all([fetch('fila.json?t='+Date.now()).then(sem).catch(()=>null),fetch('status.json?t='+Date.now()).then(sem).catch(()=>null)]);
+  fila=f||[];const st=s||{};
+  const c={ag:fila.filter(p=>p.status==='agendado').length,pub:fila.filter(p=>p.status==='publicado').length,
+    problemas:fila.filter(p=>['erro','verificar'].includes(p.status)).length};
+  const futuros=fila.filter(p=>p.status==='agendado').map(p=>new Date(p.quando)).sort((a,b)=>a-b);
+  const fim=futuros.at(-1),prox=futuros[0];
+  document.getElementById('sub').textContent=prox?`Próximo post: ${fmtDia(prox)}, às ${fmtHora(prox)}`:'Nenhum post agendado';
+  const stat=(v,t)=>`<div class="stat"><b>${v}</b><span>${t}</span></div>`;
+  document.getElementById('stats').innerHTML=stat(c.ag,'agendados')+stat(c.pub,'publicados')+stat(c.problemas,'com problema')+stat(fim?fmtData(fim):'—','fila vai até');
+  const h=[];const dias=st.token_expira_em?Math.ceil((new Date(st.token_expira_em)-Date.now())/864e5):null;
+  if(dias!==null)h.push(`<span class="${dias<14?'bad':''}">Acesso ao Instagram: ${dias} dias restantes</span>`);else h.push('<span>Acesso ao Instagram: ainda sem renovação registrada</span>');
+  if(st.ultima_publicacao)h.push(`<span>Último post: ${fmtData(new Date(st.ultima_publicacao))}, ${fmtHora(new Date(st.ultima_publicacao))}</span>`);
+  document.getElementById('saude').innerHTML=h.join('');
+  document.getElementById('alerta').innerHTML=st.token_erro?`<div class="alert">Falha ao renovar o acesso: ${esc(st.token_erro)}</div>`:'';
+  abas(c);render();
+}
+carregar();setInterval(carregar,60000);
+</script>
+</body>
+</html>

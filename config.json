@@ -1,0 +1,22 @@
+{
+  "conta": "juvenalcanalha",
+  "fuso": "America/Sao_Paulo",
+  "horarios": ["09:00", "12:00", "15:00", "18:00", "21:00"],
+  "maximo_por_dia": 5,
+  "site_url": "",
+  "api_versao": "v25.0",
+  "legendas": [
+    "Manda pra quem precisa ouvir isso.",
+    "Marca aquele amigo sem vergonha.",
+    "O Juvenal não pediu sua opinião.",
+    "Salva pra usar na hora certa.",
+    "Se doeu, compartilha.",
+    "Juvenal avisou.",
+    "Envia pro grupo e finge que não foi você.",
+    "Ninguém perguntou, mas o Juvenal respondeu.",
+    "Sem arrependimentos desde sempre.",
+    "Conselho profissional. Confia.",
+    "Foi sem querer. Mentira, foi querendo.",
+    "Manda pro crush e some."
+  ]
+}
