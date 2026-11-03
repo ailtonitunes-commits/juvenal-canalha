@@ -13,7 +13,7 @@ import requests
 
 from comum import CONFIG, agora, carregar_fila, salvar_fila, salvar_status, sincronizar, site_url
 
-API = f"https://graph.instagram.com/{CONFIG['api_versao']}"
+API = f"https://graph.facebook.com/{CONFIG['api_versao']}"
 MAX_TENTATIVAS = 3
 ESPERA_S = int(os.environ.get("ESPERA_CONTAINER_S", "10"))
 ESPERA_MAX = 18
@@ -43,7 +43,7 @@ class Api:
         return dados
 
     def conta(self):
-        return self._chamar("GET", "me", params={"fields": "user_id,username"})
+        return self._chamar("GET", CONFIG["ig_user_id"], params={"fields": "id,username"})
 
     def item(self, ig, url):
         return self._chamar("POST", f"{ig}/media", data={"image_url": url, "is_carousel_item": "true"})["id"]
@@ -114,7 +114,7 @@ def executar(api=None):
         esperado = CONFIG["conta"].lower()
         if conta.get("username", "").lower() != esperado:
             raise ErroApi(f"Conta conectada ({conta.get('username')}) difere de {esperado}")
-        ig = conta["user_id"]
+        ig = conta["id"]
         base = site_url()
         filhos = [
             api.item(ig, f"{base}/slides/{post['slide']}"),
