@@ -32,7 +32,7 @@ class ApiFalsa:
         self.urls, self.publicados, self.legenda = [], [], None
 
     def conta(self):
-        return {"user_id": "1", "username": self._conta}
+        return {"id": "1", "username": self._conta}
 
     def item(self, ig, url):
         if self.falha_item:

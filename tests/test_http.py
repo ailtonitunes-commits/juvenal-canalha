@@ -29,8 +29,8 @@ class Falso(BaseHTTPRequestHandler):
             if Falso.responder_erro:
                 return self._r(400, {"error": {"message": "expirado"}})
             return self._r(200, {"access_token": "novo", "token_type": "bearer", "expires_in": 5184000})
-        if u.path.endswith("/me"):
-            return self._r(200, {"user_id": "99", "username": "JuvenalCanalha"})
+        if u.path.endswith("/17841458850803002"):
+            return self._r(200, {"id": "99", "username": "JuvenalCanalha"})
         return self._r(200, {"status_code": "FINISHED"})
 
     def do_POST(self):
@@ -56,7 +56,7 @@ def servidor(monkeypatch):
 
 def test_fluxo_de_carrossel_real(servidor):
     api = publicar.Api("segredo")
-    assert api.conta()["user_id"] == "99"
+    assert api.conta()["id"] == "99"
     a = api.item("99", "https://s/1.jpg"); b = api.item("99", "https://s/2.jpg")
     api.aguardar(a)
     c = api.carrossel("99", [a, b], "minha legenda")
