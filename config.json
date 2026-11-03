@@ -1,7 +1,14 @@
 {
   "conta": "juvenalcanalha",
+  "ig_user_id": "17841458850803002",
   "fuso": "America/Sao_Paulo",
-  "horarios": ["09:00", "12:00", "15:00", "18:00", "21:00"],
+  "horarios": [
+    "09:00",
+    "12:00",
+    "15:00",
+    "18:00",
+    "21:00"
+  ],
   "maximo_por_dia": 5,
   "site_url": "",
   "api_versao": "v25.0",

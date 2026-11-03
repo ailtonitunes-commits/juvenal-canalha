@@ -7,8 +7,7 @@ Publica 5 carrosséis por dia no `@juvenalcanalha`: a arte da frase mais o slide
 1. A planilha entra em `entrada/` com a coluna `frase` e, se quiser, `legenda`.
 2. O workflow **Importar** gera as artes, ignora frases repetidas e ocupa os próximos horários livres.
 3. O workflow **Publicar** roda a cada 10 minutos e publica o post que chegou no horário.
-4. O workflow **Renovar acesso** renova o token toda segunda-feira.
-5. O painel mostra a fila, os publicados e os problemas.
+4. O painel mostra a fila, os publicados e os problemas.
 
 Horários e legendas padrão ficam em `config.json`.
 
@@ -30,20 +29,16 @@ Horários e legendas padrão ficam em `config.json`.
 3. Em **Settings > Pages**, em **Source**, escolha **GitHub Actions**.
 
 ### 2. Instagram
-1. Confirme que `@juvenalcanalha` é uma conta profissional.
-2. Em developers.facebook.com, crie um app do tipo Business e adicione o produto **Instagram**.
-3. Em **API setup with Instagram login**, adicione a conta e gere o token.
-   Permissões: `instagram_business_basic` e `instagram_business_content_publish`.
+A conta entra em um portfólio da Meta, e o acesso usa um usuário do sistema, com token que não expira.
 
-### 3. Segredos
-Em **Settings > Secrets and variables > Actions**, crie:
+1. Ligue `@juvenalcanalha` ao portfólio e o app a esse portfólio.
+2. Crie um usuário do sistema, atribua o app e o perfil do Instagram a ele.
+3. Gere o token com `instagram_basic`, `instagram_content_publish`, `pages_read_engagement` e `business_management`.
 
-| Nome | Valor |
-|---|---|
-| `IG_ACCESS_TOKEN` | Token gerado no passo 2 |
-| `GH_ADMIN_TOKEN` | Token fine-grained do GitHub, só neste repositório, com **Secrets: Read and write** |
+### 3. Segredo
+Em **Settings > Secrets and variables > Actions**, crie `IG_ACCESS_TOKEN` com o token gerado.
 
-O `GH_ADMIN_TOKEN` tem validade. Anote a data: quando vencer, o workflow **Renovar acesso** falha e o GitHub avisa por e-mail. Basta gerar outro e trocar o segredo.
+Esse token não expira. O workflow **Renovar acesso** fica desativado.
 
 ### 4. Primeiro teste
 1. Importe uma planilha com 2 frases.
