@@ -1,0 +1,33 @@
+name: Renovar acesso
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: fila
+  cancel-in-progress: false
+jobs:
+  renovar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: |
+          git config user.name "juvenal-bot"
+          git config user.email "juvenal-bot@users.noreply.github.com"
+      - id: tarefa
+        run: python scripts/renovar_token.py
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_ADMIN_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
+      - if: steps.tarefa.outputs.mudou == 'true'
+        run: gh workflow run site.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
