@@ -35,6 +35,7 @@ def ler_excel(caminho):
     itens = []
     for linha in linhas[1 if tem_cab else 0:]:
         frase = str(linha[col_f] or "").strip() if col_f < len(linha) else ""
+        frase = re.sub(r"[ \t]{3,}", "\n\n", frase)
         if not frase:
             continue
         legenda = ""
