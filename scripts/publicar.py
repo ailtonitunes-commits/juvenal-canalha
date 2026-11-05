@@ -52,8 +52,12 @@ class Api:
         dados = {"media_type": "CAROUSEL", "children": ",".join(filhos), "caption": legenda}
         return self._chamar("POST", f"{ig}/media", data=dados)["id"]
 
-    def aguardar(self, container):
-        for _ in range(ESPERA_MAX):
+    def reel(self, ig, url, legenda):
+        dados = {"media_type": "REELS", "video_url": url, "caption": legenda, "share_to_feed": "true"}
+        return self._chamar("POST", f"{ig}/media", data=dados)["id"]
+
+    def aguardar(self, container, tentativas=ESPERA_MAX):
+        for _ in range(tentativas):
             codigo = self._chamar("GET", container, params={"fields": "status_code"}).get("status_code")
             if codigo == "FINISHED":
                 return
@@ -116,14 +120,18 @@ def executar(api=None):
             raise ErroApi(f"Conta conectada ({conta.get('username')}) difere de {esperado}")
         ig = conta["id"]
         base = site_url()
-        filhos = [
-            api.item(ig, f"{base}/slides/{post['slide']}"),
-            api.item(ig, f"{base}/slides/siga.jpg"),
-        ]
-        for filho in filhos:
-            api.aguardar(filho)
-        container = api.carrossel(ig, filhos, post["legenda"])
-        api.aguardar(container)
+        if post.get("tipo") == "reels":
+            container = api.reel(ig, f"{base}/slides/{post['video']}", post["legenda"])
+            api.aguardar(container, ESPERA_MAX * 3)
+        else:
+            filhos = [
+                api.item(ig, f"{base}/slides/{post['slide']}"),
+                api.item(ig, f"{base}/slides/siga.jpg"),
+            ]
+            for filho in filhos:
+                api.aguardar(filho)
+            container = api.carrossel(ig, filhos, post["legenda"])
+            api.aguardar(container)
     except ErroApi as erro:
         post["tentativas"] += 1
         post["erro"] = str(erro)

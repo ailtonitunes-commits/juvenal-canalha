@@ -14,6 +14,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 import arte
+import reels
 from comum import CONFIG, FUSO, RAIZ, SLIDES, agora, carregar_fila, salvar_fila, sincronizar
 
 
@@ -72,17 +73,22 @@ def importar(itens, inicio=None, simular=False):
             continue
         try:
             arte.diagramar(item["frase"])
+            arte.diagramar(item["frase"], reels.AREA["largura"], reels.AREA["topo"], reels.AREA["base"])
         except arte.FraseLonga as erro:
             recusadas.append(str(erro))
             continue
         vistas.add(chave)
         slide = f"{proximo:04d}.jpg"
+        quando = next(vagas)
+        tipo = "reels" if f"{quando:%H:%M}" in CONFIG.get("reels_horarios", []) else "post"
         post = {
             "id": proximo,
             "frase": item["frase"],
             "legenda": item["legenda"] or legendas[proximo % len(legendas)],
-            "quando": next(vagas).isoformat(),
+            "quando": quando.isoformat(),
             "slide": slide,
+            "tipo": tipo,
+            "video": f"{proximo:04d}.mp4" if tipo == "reels" else "",
             "status": "agendado",
             "tentativas": 0,
             "erro": "",
@@ -91,6 +97,8 @@ def importar(itens, inicio=None, simular=False):
         }
         if not simular:
             arte.gerar(item["frase"], SLIDES / slide)
+            if tipo == "reels":
+                reels.gerar(item["frase"], SLIDES / post["video"])
         novos.append(post)
         proximo += 1
     if not simular:

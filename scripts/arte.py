@@ -24,7 +24,7 @@ def _fonte(tamanho):
     return ImageFont.truetype(str(FONTE), tamanho)
 
 
-def _quebrar_bloco(texto, fonte):
+def _quebrar_bloco(texto, fonte, largura_max=LARGURA_MAX):
     """Divide um paragrafo em linhas equilibradas, preferindo quebrar apos pontuacao."""
     palavras = texto.split()
     if not palavras:
@@ -34,12 +34,12 @@ def _quebrar_bloco(texto, fonte):
     melhor = [(float("inf"), -1)] * (n + 1)
     melhor[0] = (0, -1)
     espaco = medir(" ")
-    largura_ideal = min(LARGURA_MAX, medir(" ".join(palavras)) * 0.62 + 200)
+    largura_ideal = min(largura_max, medir(" ".join(palavras)) * 0.62 + 200)
     for fim in range(1, n + 1):
         for ini in range(fim - 1, -1, -1):
             linha = " ".join(palavras[ini:fim])
             larg = medir(linha)
-            if larg > LARGURA_MAX:
+            if larg > largura_max:
                 if ini == fim - 1:
                     raise FraseLonga(f"Palavra grande demais: {palavras[ini]}")
                 break
@@ -57,27 +57,29 @@ def _quebrar_bloco(texto, fonte):
     return linhas[::-1]
 
 
-def diagramar(frase):
+def diagramar(frase, largura=LARGURA_MAX, topo=LIMITE_SUPERIOR, base=LIMITE_INFERIOR):
     """Retorna (linhas, tamanho, entrelinha) que cabem na area de texto."""
     for tamanho in (56, 52, 48, 44, 40, 36):
         fonte = _fonte(tamanho)
         linhas = []
         for bloco in frase.strip().split("\n"):
-            linhas.extend(_quebrar_bloco(bloco, fonte) or [""])
+            linhas.extend(_quebrar_bloco(bloco, fonte, largura) or [""])
         passo = round(tamanho * 1.38)
-        altura = passo * len(linhas)
-        if altura <= LIMITE_INFERIOR - LIMITE_SUPERIOR:
+        if passo * len(linhas) <= base - topo:
             return linhas, tamanho, passo
     raise FraseLonga(f"Frase longa demais para a arte: {frase[:50]}...")
 
 
-def gerar(frase, destino):
-    linhas, tamanho, passo = diagramar(frase)
-    img = Image.open(BASE).convert("RGB")
-    desenho = ImageDraw.Draw(img)
+def escrever(desenho, frase, largura=LARGURA_MAX, centro=CENTRO_Y, topo=LIMITE_SUPERIOR, base=LIMITE_INFERIOR):
+    linhas, tamanho, passo = diagramar(frase, largura, topo, base)
     fonte = _fonte(tamanho)
     altura = passo * len(linhas)
-    topo = min(CENTRO_Y - altura / 2, LIMITE_INFERIOR - altura)
+    inicio = min(centro - altura / 2, base - altura)
     for i, linha in enumerate(linhas):
-        desenho.text((540, topo + passo * (i + 0.5)), linha, font=fonte, fill=TINTA, anchor="mm")
+        desenho.text((540, inicio + passo * (i + 0.5)), linha, font=fonte, fill=TINTA, anchor="mm")
+
+
+def gerar(frase, destino):
+    img = Image.open(BASE).convert("RGB")
+    escrever(ImageDraw.Draw(img), frase)
     img.save(destino, "JPEG", quality=92, subsampling=0, optimize=True)
