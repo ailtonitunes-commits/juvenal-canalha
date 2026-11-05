@@ -88,3 +88,9 @@ def test_renovacao_falha_sem_vazar(servidor):
     with pytest.raises(RuntimeError) as e:
         renovar_token.renovar("antigo")
     assert "expirado" in str(e.value) and "antigo" not in str(e.value)
+
+
+def test_reel_real(servidor):
+    api = publicar.Api("segredo")
+    api.reel("99", "https://s/1.mp4", "leg")
+    assert Falso.log[-1][3] == {"media_type": "REELS", "video_url": "https://s/1.mp4", "caption": "leg", "share_to_feed": "true"}

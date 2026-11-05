@@ -44,7 +44,11 @@ class ApiFalsa:
         self.legenda = legenda
         return "car"
 
-    def aguardar(self, c):
+    def reel(self, ig, url, legenda):
+        self.urls.append(url); self.legenda = legenda
+        return "reel"
+
+    def aguardar(self, c, tentativas=0):
         pass
 
     def publicar(self, ig, c):
@@ -163,3 +167,29 @@ def test_conta_errada_nao_publica(ambiente):
     api = ApiFalsa(conta="outra")
     assert publicar.executar(api) == 1
     assert not api.publicados
+
+
+def test_varios_espacos_viram_linha_em_branco(ambiente):
+    wb = Workbook(); wb.active.append(["Primeira parte      Segunda parte"])
+    p = ambiente / "c.xlsx"; wb.save(p)
+    frase = importar.ler_excel(p)[0]["frase"]
+    assert frase == "Primeira parte\n\nSegunda parte"
+    linhas, _, _ = arte.diagramar(frase)
+    assert "" in linhas
+
+
+def test_publica_reel_com_video(ambiente):
+    comum.salvar_fila([dict(post(), tipo="reels", video="0001.mp4")])
+    api = ApiFalsa()
+    assert publicar.executar(api) == 0
+    assert api.urls == ["https://site.exemplo/slides/0001.mp4"]
+    assert api.publicados == ["reel"] and comum.carregar_fila()[0]["status"] == "publicado"
+
+
+def test_tres_reels_e_dois_posts_por_dia(ambiente):
+    novos, _, _ = importar.importar([{"frase": f"Frase {i}", "legenda": ""} for i in range(15)], simular=True)
+    por_dia = {}
+    for p in novos:
+        por_dia.setdefault(p["quando"][:10], []).append(p["tipo"])
+    cheios = [v for v in por_dia.values() if len(v) == 5]
+    assert cheios and all(v.count("reels") == 3 and v.count("post") == 2 for v in cheios)
