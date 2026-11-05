@@ -9,6 +9,11 @@
     "18:00",
     "21:00"
   ],
+  "reels_horarios": [
+    "12:00",
+    "18:00",
+    "21:00"
+  ],
   "maximo_por_dia": 5,
   "site_url": "",
   "api_versao": "v25.0",
