@@ -65,7 +65,7 @@ function render(){
   if(!lista.length){alvo.innerHTML='<div class="day vazio">Nada por aqui.</div>';return}
   alvo.innerHTML=[...dias].map(([dia,ps])=>`<section class="day"><h2>${dia}</h2><div class="posts">${ps.map(p=>`
     <article class="post"><a href="slides/${esc(p.slide)}" target="_blank" rel="noopener"><img loading="lazy" src="slides/${esc(p.slide)}" alt="${esc(p.frase)}"></a>
-    <div class="meta"><span class="hora">${fmtHora(new Date(p.quando))}</span><span class="tag ${esc(p.status)}">${NOME[p.status]||esc(p.status)}</span></div>
+    <div class="meta"><span class="hora">${fmtHora(new Date(p.quando))}${p.tipo==='reels'?' · Reels':''}</span><span class="tag ${esc(p.status)}">${NOME[p.status]||esc(p.status)}</span></div>
     ${p.erro?`<div class="err">${esc(p.erro)}</div>`:''}</article>`).join('')}</div></section>`).join('');
 }
 function abas(c){
