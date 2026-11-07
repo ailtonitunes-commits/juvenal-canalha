@@ -2,6 +2,7 @@
 import json
 import os
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -68,7 +69,8 @@ def sincronizar(mensagem):
         return False
     _git("commit", "-m", mensagem)
     ultimo = None
-    for _ in range(5):
+    for espera in (0, 5, 15, 30, 60, 90):
+        time.sleep(espera)
         try:
             _git("pull", "--rebase", "origin", "main")
             _git("push", "origin", "HEAD:main")
