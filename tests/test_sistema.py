@@ -186,10 +186,10 @@ def test_publica_reel_com_video(ambiente):
     assert api.publicados == ["reel"] and comum.carregar_fila()[0]["status"] == "publicado"
 
 
-def test_tres_reels_e_dois_posts_por_dia(ambiente):
+def test_todos_os_horarios_sao_reels(ambiente):
     novos, _, _ = importar.importar([{"frase": f"Frase {i}", "legenda": ""} for i in range(15)], simular=True)
     por_dia = {}
     for p in novos:
         por_dia.setdefault(p["quando"][:10], []).append(p["tipo"])
     cheios = [v for v in por_dia.values() if len(v) == 5]
-    assert cheios and all(v.count("reels") == 3 and v.count("post") == 2 for v in cheios)
+    assert cheios and all(v.count("reels") == 5 for v in cheios)
