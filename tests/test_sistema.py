@@ -193,3 +193,19 @@ def test_todos_os_horarios_sao_reels(ambiente):
         por_dia.setdefault(p["quando"][:10], []).append(p["tipo"])
     cheios = [v for v in por_dia.values() if len(v) == 5]
     assert cheios and all(v.count("reels") == 5 for v in cheios)
+
+
+def test_importacao_preserva_publicacao_feita_durante_geracao(ambiente, monkeypatch):
+    comum.salvar_fila([post(1)])
+    real = importar.atualizar
+
+    def publicou_no_meio():
+        fila = comum.carregar_fila()
+        fila[0]["status"] = "publicado"
+        comum.salvar_fila(fila)
+    monkeypatch.setattr(importar, "atualizar", publicou_no_meio)
+    monkeypatch.setattr(importar.arte, "gerar", lambda *a: None)
+    monkeypatch.setattr(importar.reels, "gerar", lambda *a: None)
+    importar.importar([{"frase": "Nova frase", "legenda": ""}])
+    fila = comum.carregar_fila()
+    assert fila[0]["status"] == "publicado" and len(fila) == 2
