@@ -15,7 +15,7 @@ from openpyxl import load_workbook
 
 import arte
 import reels
-from comum import CONFIG, FUSO, RAIZ, SLIDES, agora, carregar_fila, salvar_fila, sincronizar
+from comum import CONFIG, FUSO, RAIZ, SLIDES, agora, atualizar, carregar_fila, salvar_fila, sincronizar
 
 
 def normalizar(texto):
@@ -102,7 +102,9 @@ def importar(itens, inicio=None, simular=False):
         novos.append(post)
         proximo += 1
     if not simular:
-        salvar_fila(fila + novos)
+        # Os videos demoram; recarrega a fila para nao apagar posts publicados nesse meio tempo.
+        atualizar()
+        salvar_fila(carregar_fila() + novos)
     return novos, duplicadas, recusadas
 
 

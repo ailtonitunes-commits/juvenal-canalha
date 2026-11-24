@@ -60,6 +60,19 @@ def _git(*args):
     return subprocess.run(["git", *args], cwd=RAIZ, check=True, capture_output=True, text=True).stdout
 
 
+def atualizar():
+    """Traz as mudancas mais recentes do GitHub (ex.: posts publicados durante a importacao)."""
+    if os.environ.get("SEM_GIT"):
+        return
+    for espera in (0, 5, 15, 30):
+        time.sleep(espera)
+        try:
+            _git("pull", "--rebase", "origin", "main")
+            return
+        except subprocess.CalledProcessError:
+            pass
+
+
 def sincronizar(mensagem):
     """Faz commit e push. Retorna True se havia mudanca. Falha alto se nao conseguir enviar."""
     if os.environ.get("SEM_GIT"):
